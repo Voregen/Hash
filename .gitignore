@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+#define F first
+#define S second
+
+using namespace std;
+
+const int MOD = 1e9 + 9;
+const int MOD1 = 1e9 + 7;
+
+vector<pair<int, int> > p_pow;
+
+int p = 31;
+
+void init(int n = 1000000) {
+    p_pow.resize(n, {0, 0});
+    p_pow[0].F = 1;
+    p_pow[0].S = 1;
+    for (int i = 1; i < p_pow.size(); i++) {
+        p_pow[i].F = (1ll * p_pow[i - 1].F * p) % MOD;
+        p_pow[i].S = (1ll * p_pow[i - 1].S * p) % MOD1;
+    }
+}
+
+struct Hash {
+    int n;
+    vector<pair<int, int> > hsh;
+
+    Hash() {
+        n = 0;
+    }
+
+    Hash(string s) {
+        n = (int)s.size();
+        hsh.resize(n);
+        for (int i = 0; i < n; i++) {
+            hsh[i].F = (i ? (1ll * hsh[i - 1].F * p % MOD) : 0);
+            hsh[i].F += 1ll * (s[i] - 'a' + 1) % MOD;
+            hsh[i].F %= MOD;
+            hsh[i].S = (i ? (1ll * hsh[i - 1].S * p % MOD1) : 0);
+            hsh[i].S += 1ll * (s[i] - 'a' + 1) % MOD1;
+            hsh[i].S %= MOD1;
+            if (hsh[i].F < 0) hsh[i].F += MOD;
+            if (hsh[i].S < 0) hsh[i].S += MOD1;
+        }
+    }
+
+    pair<int, int> get(int l, int r) {
+        int len = r - l + 1;
+        int h1 = hsh[r].F;
+        if (l)
+            h1 -= 1ll * hsh[l - 1].F * p_pow[len].F % MOD;
+        h1 %= MOD;
+        if (h1 < 0) h1 += MOD;
+        int h2 = hsh[r].S;
+        if (l)
+            h2 -= 1ll * hsh[l - 1].S * p_pow[len].S % MOD1;
+        h2 %= MOD1;
+        if (h2 < 0) h2 += MOD1;
+        return {h1, h2};
+    }
+
+
+    pair<int, int> getHash() {
+        return hsh[n - 1];
+    }
+};
+
+
+set  < pair < int, int >  > st;
+
+int main () {
+    srand(time(0));
+    ios_base::sync_with_stdio(0);
+    //freopen("input.txt", "r", stdin);
+   // freopen("output.txt", "w", stdout);
+    string s, s1;
+    int k;
+    init();
+    cin >> s;
+    cin >> s1;
+    cin >> k;
+    Hash h(s);
+    for (int l(0); l < s.size(); l++) {
+        int kn = 0;
+        for (int r(l); r < s.size(); r++) {
+           // cout << int(s[r]) << endl;
+            if (s1[s[r] - 'a'] == '0') kn++;
+            if (kn > k) break;
+            st.insert(h.get(l, r));
+        }
+    }
+    cout << st.size() << endl;
+}
